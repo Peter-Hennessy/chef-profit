@@ -1,5 +1,6 @@
 import gspread
 from google.oauth2.service_account import Credentials
+from pprint import pprint
 
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -11,7 +12,6 @@ CREDS = Credentials.from_service_account_file('creds.json')
 SCOPED_CREDS = CREDS.with_scopes(SCOPE)
 GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
 SHEET = GSPREAD_CLIENT.open('chef_profit')
-
 
 def get_sales_data():
     """
@@ -25,7 +25,6 @@ def get_sales_data():
         data_str = input("Enter Selling price Here: ")
                    
 
-
         sales_data = data_str.split(",")
 
         if  validate_data(sales_data):
@@ -33,7 +32,6 @@ def get_sales_data():
             break
 
     return sales_data
-
 
 def validate_data(values):
     """
@@ -51,9 +49,7 @@ def validate_data(values):
         print(f"Invalid data: {e}, please try again.\n")
         return False
 
-
     return True
-
 
 def update_sales_worksheet(data):
     """
@@ -61,10 +57,32 @@ def update_sales_worksheet(data):
     """
     print("Updating sales worksheet...\n")
     sales_worksheet = SHEET.worksheet("sales")
-    sales_worksheet.append_row(data)
+    sales_worksheet.append_row(data)	
     print("Sales successfuly updated.\n")
 
+def calculate_suprlus_data(sales_row):
+    """
+    Comapre sales with staock and calculayte the surplus for each type item.
 
-data = get_sales_data()
-sales_data = [int(num) for num in data]
-update_sales_worksheet(sales_data)
+    Thes surplus is defined as the sales fu=igure subtracted for the stock:
+    - Positive surplus indicates waste.
+    - Negative surplus bdicates extra made when stock was sold out.
+    """
+    print("Calculating surplus data....\n")
+    stock = SHEET.worksheet("stock").get_all_values()
+    stock_row = stock[-1]
+    print(stock_row)
+
+
+def main():
+    """
+    Run all program function
+    """
+    data = get_sales_data()
+    sales_data = [int(num) for num in data]
+    update_sales_worksheet(sales_data)
+    calculate_suprlus_data(sales_data)
+
+    
+print("Welcome to love sandwiches data automation")
+main()
