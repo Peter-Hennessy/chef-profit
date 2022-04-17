@@ -7,11 +7,13 @@ SCOPE = [
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
     ]
-    
+
+
 CREDS = Credentials.from_service_account_file('creds.json')
 SCOPED_CREDS = CREDS.with_scopes(SCOPE)
 GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
 SHEET = GSPREAD_CLIENT.open('chef_profit')
+
 
 def get_sales_data():
     """
@@ -21,17 +23,18 @@ def get_sales_data():
         print("Please enter sales data from the last market.")
         print("Data should be a four didget number, and  seperated by a full stop.")
         print("Example: 10,20,30,40,50,60\n")
-    
+        
         data_str = input("Enter Selling price Here: ")
                    
-
         sales_data = data_str.split(",")
+
 
         if  validate_data(sales_data):
             print("Data is valid!")
             break
 
     return sales_data
+
 
 def validate_data(values):
     """
@@ -51,6 +54,7 @@ def validate_data(values):
 
     return True
 
+
 def update_sales_worksheet(data):
     """
     Update sales worksheet, add row with list of data provided
@@ -61,7 +65,6 @@ def update_sales_worksheet(data):
     print("Sales successfuly updated.\n")
 
 
-
 def update_surplus_worksheet(data):
     """
     Update surplus worksheet, add row with list of data provided
@@ -70,6 +73,18 @@ def update_surplus_worksheet(data):
     surplus_worksheet = SHEET.worksheet("surplus")
     surplus_worksheet.append_row(data)	
     print("Surplus successfuly updated.\n")
+
+
+def update_worksheet(data, worksheet):
+    """
+    Revieves a list of integers to be inmserted into worksheet
+    Update thet relevant worksheet with the data provided
+    """
+    print(f"Updating {worksheet} worksheet...\n")
+    worksheet_to_update = SHEET.worksheet(worksheet)
+    worksheet_to_update.append_row(data)
+    print(f"{worksheet} Worksheet successfuly updated\n")
+
 
 def calculate_surplus_data(sales_row):
     """
@@ -87,7 +102,7 @@ def calculate_surplus_data(sales_row):
     for stock, sales in zip(stock_row, sales_row):
         surplus = int(stock) - sales
         surplus_data.append(surplus)
-    
+
     return surplus_data
 
 
@@ -97,10 +112,9 @@ def main():
     """
     data = get_sales_data()
     sales_data = [int(num) for num in data]
-    update_sales_worksheet(sales_data)
+    update_worksheet(sales_data, "sales")
     new_surplus_data = calculate_surplus_data(sales_data)
-    update_surplus_worksheet(sales_data)
-    print(new_surplus_data)
+    update_worksheet(new_surplus_data, "surplus")
 
 
 print("Welcome to love sandwiches data automation")
